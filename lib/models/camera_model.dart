@@ -1,0 +1,81 @@
+import 'package:cloud_firestore/cloud_firestore.dart';
+
+class CameraModel {
+  final String id;
+  final String name;
+  final String rtspUrl;
+  final String username;
+  final String password;
+  final String location;
+  final bool isActive;
+  final DateTime createdAt;
+  final DateTime updatedAt;
+
+  CameraModel({
+    required this.id,
+    required this.name,
+    required this.rtspUrl,
+    required this.username,
+    required this.password,
+    required this.location,
+    required this.isActive,
+    required this.createdAt,
+    required this.updatedAt,
+  });
+
+  // Convert to Firestore document
+  Map<String, dynamic> toFirestore() {
+    return {
+      'id': id,
+      'name': name,
+      'rtspUrl': rtspUrl,
+      'username': username,
+      'password': password,
+      'location': location,
+      'isActive': isActive,
+      'createdAt': Timestamp.fromDate(createdAt),
+      'updatedAt': Timestamp.fromDate(updatedAt),
+    };
+  }
+
+  // Create from Firestore document
+  factory CameraModel.fromFirestore(DocumentSnapshot doc) {
+    final data = doc.data() as Map<String, dynamic>;
+    return CameraModel(
+      id: data['id'] ?? doc.id,
+      name: data['name'] ?? 'Unknown',
+      rtspUrl: data['rtspUrl'] ?? '',
+      username: data['username'] ?? '',
+      password: data['password'] ?? '',
+      location: data['location'] ?? '',
+      isActive: data['isActive'] ?? true,
+      createdAt: (data['createdAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+      updatedAt: (data['updatedAt'] as Timestamp?)?.toDate() ?? DateTime.now(),
+    );
+  }
+
+  // Copy with method
+  CameraModel copyWith({
+    String? id,
+    String? name,
+    String? rtspUrl,
+    String? username,
+    String? password,
+    String? location,
+    bool? isActive,
+    DateTime? createdAt,
+    DateTime? updatedAt,
+  }) {
+    return CameraModel(
+      id: id ?? this.id,
+      name: name ?? this.name,
+      rtspUrl: rtspUrl ?? this.rtspUrl,
+      username: username ?? this.username,
+      password: password ?? this.password,
+      location: location ?? this.location,
+      isActive: isActive ?? this.isActive,
+      createdAt: createdAt ?? this.createdAt,
+      updatedAt: updatedAt ?? this.updatedAt,
+    );
+  }
+}
