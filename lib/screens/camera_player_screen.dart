@@ -152,10 +152,16 @@ class _CameraPlayerScreenState extends State<CameraPlayerScreen> {
                 style: const TextStyle(color: Colors.white70),
               ),
               const SizedBox(height: 18),
-              const Text(
-                'Gợi ý: kiểm tra RTSP URL, username/password, port forward WAN, firewall, hoặc thử URL này bằng VLC trước.',
+              Text(
+                'Gợi ý: kiểm tra URL, username/password, port forward WAN, firewall, hoặc thử URL này bằng VLC trước.',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.white54, fontSize: 12),
+                style: const TextStyle(color: Colors.white54, fontSize: 12),
+              ),
+              const SizedBox(height: 6),
+              Text(
+                'Kiểu stream: ${widget.camera.streamType.name.toUpperCase()}',
+                textAlign: TextAlign.center,
+                style: const TextStyle(color: Colors.amber, fontSize: 12),
               ),
               const SizedBox(height: 24),
               ElevatedButton.icon(
@@ -284,7 +290,8 @@ class _CameraPlayerScreenState extends State<CameraPlayerScreen> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             _buildInfoRow('Vị trí', widget.camera.location),
-            _buildInfoRow('RTSP URL', widget.camera.rtspUrl),
+            _buildInfoRow('Kiểu stream', widget.camera.streamType.name.toUpperCase()),
+            _buildInfoRow('URL', widget.camera.rtspUrl),
             _buildInfoRow(
               'Username',
               widget.camera.username.isEmpty ? '(không có)' : widget.camera.username,

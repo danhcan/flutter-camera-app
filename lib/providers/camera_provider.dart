@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:uuid/uuid.dart';
-import '../models/camera_model.dart';
+import '../models/camera_model.dart' show CameraModel, StreamType;
 
 class CameraProvider extends ChangeNotifier {
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
@@ -47,6 +47,7 @@ class CameraProvider extends ChangeNotifier {
   Future<void> addCamera({
     required String name,
     required String rtspUrl,
+    StreamType streamType = StreamType.rtsp,
     required String username,
     required String password,
     required String location,
@@ -64,6 +65,7 @@ class CameraProvider extends ChangeNotifier {
         id: cameraId,
         name: name,
         rtspUrl: rtspUrl,
+        streamType: streamType,
         username: username,
         password: password,
         location: location,
@@ -94,6 +96,7 @@ class CameraProvider extends ChangeNotifier {
   Future<void> updateCamera(String cameraId, {
     String? name,
     String? rtspUrl,
+    StreamType? streamType,
     String? username,
     String? password,
     String? location,
@@ -111,6 +114,7 @@ class CameraProvider extends ChangeNotifier {
       final updatedCamera = _cameras[cameraIndex].copyWith(
         name: name,
         rtspUrl: rtspUrl,
+        streamType: streamType,
         username: username,
         password: password,
         location: location,

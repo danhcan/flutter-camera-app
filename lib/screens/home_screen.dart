@@ -4,6 +4,7 @@ import '../providers/camera_provider.dart';
 import '../providers/auth_provider.dart';
 import 'camera_grid_screen.dart';
 import 'add_camera_screen.dart';
+import 'lan_discovery_screen.dart';
 
 class HomeScreen extends StatefulWidget {
   const HomeScreen({Key? key}) : super(key: key);
@@ -32,6 +33,13 @@ class _HomeScreenState extends State<HomeScreen> {
         elevation: 0,
         actions: [
           IconButton(
+            tooltip: 'Quét camera LAN',
+            icon: const Icon(Icons.wifi_find),
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LanDiscoveryScreen()),
+            ),
+          ),
+          IconButton(
             icon: const Icon(Icons.person),
             onPressed: () => _showProfileMenu(context),
           ),
@@ -55,13 +63,21 @@ class _HomeScreenState extends State<HomeScreen> {
                   ),
                   const SizedBox(height: 16),
                   Text(
-                    'No cameras added yet',
+                    'Chưa có camera nào',
                     style: Theme.of(context).textTheme.titleLarge,
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    'Tap + to add your first camera',
+                    'Bấm + để thêm thủ công hoặc quét LAN',
                     style: Theme.of(context).textTheme.bodyMedium,
+                  ),
+                  const SizedBox(height: 24),
+                  OutlinedButton.icon(
+                    onPressed: () => Navigator.of(context).push(
+                      MaterialPageRoute(builder: (_) => const LanDiscoveryScreen()),
+                    ),
+                    icon: const Icon(Icons.wifi_find),
+                    label: const Text('Quét camera trong mạng LAN'),
                   ),
                 ],
               ),
@@ -71,12 +87,27 @@ class _HomeScreenState extends State<HomeScreen> {
           return CameraGridScreen(cameras: cameraProvider.cameras);
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () => Navigator.of(context).push(
-          MaterialPageRoute(builder: (_) => const AddCameraScreen()),
-        ),
-        tooltip: 'Add Camera',
-        child: const Icon(Icons.add),
+      floatingActionButton: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          FloatingActionButton.small(
+            heroTag: 'scan',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const LanDiscoveryScreen()),
+            ),
+            tooltip: 'Quét LAN',
+            child: const Icon(Icons.wifi_find),
+          ),
+          const SizedBox(height: 12),
+          FloatingActionButton(
+            heroTag: 'add',
+            onPressed: () => Navigator.of(context).push(
+              MaterialPageRoute(builder: (_) => const AddCameraScreen()),
+            ),
+            tooltip: 'Thêm camera',
+            child: const Icon(Icons.add),
+          ),
+        ],
       ),
     );
   }

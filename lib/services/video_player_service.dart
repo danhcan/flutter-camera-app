@@ -13,35 +13,56 @@ class VideoPlayerService {
   bool get isPlaying => _isPlaying;
   VlcPlayerController get controller => _controller;
 
-  static String buildRtspUrl({
-    required String rtspUrl,
-    String username = '',
-    String password = '',
-  }) {
-    final cleanUrl = rtspUrl.trim();
-
-    if (username.trim().isEmpty || password.trim().isEmpty) {
-      return cleanUrl;
+  String get _protocol {
+    switch (camera.streamType) {
+      case StreamType.rtsp:
+        return 'rtsp://';
+      case StreamType.http:
+        return 'http://';
+      case StreamType.onvif:
+        return 'http://';
     }
+  }
 
-    // If URL already contains credentials, keep as-is.
-    // Example: rtsp://user:pass@host:554/stream
-    final withoutScheme = cleanUrl.replaceFirst('rtsp://', '');
-    if (withoutScheme.contains('@')) {
-      return cleanUrl;
-    }
+  String get playableUrl {
+    final cleanUrl = camera.rtspUrl.trim();
+    final username = camera.username.trim();
+    final password = camera.password.trim();
+
+    if (username.isEmpty || password.isEmpty) return cleanUrl;
+
+    // Already has credentials
+    final withoutScheme = cleanUrl.startsWith('${_protocol}') 
+        ? cleanUrl.substring(_protocol.length)
+        : cleanUrl;
+    if (withoutScheme.contains('@')) return cleanUrl;
 
     return cleanUrl.replaceFirst(
-      'rtsp://',
-      'rtsp://${Uri.encodeComponent(username.trim())}:${Uri.encodeComponent(password.trim())}@',
+      _protocol,
+      '${_protocol}${Uri.encodeComponent(username)}:${Uri.encodeComponent(password)}@',
     );
   }
 
-  String get playableUrl => buildRtspUrl(
-        rtspUrl: camera.rtspUrl,
-        username: camera.username,
-        password: camera.password,
-      );
+  List<String> get _extraOptions {
+    switch (camera.streamType) {
+      case StreamType.rtsp:
+        return [
+          VlcAdvancedOptions.networkCaching(1500),
+          VlcAdvancedOptions.liveCaching(1500),
+          '--rtsp-tcp',
+        ];
+      case StreamType.http:
+        return [
+          VlcAdvancedOptions.networkCaching(2000),
+          '--http-reconnect',
+        ];
+      case StreamType.onvif:
+        return [
+          VlcAdvancedOptions.networkCaching(1500),
+          '--rtsp-tcp',
+        ];
+    }
+  }
 
   Future<void> initialize() async {
     try {
@@ -50,13 +71,9 @@ class VideoPlayerService {
         hwAcc: HwAcc.full,
         autoPlay: false,
         options: VlcPlayerOptions(
-          advanced: VlcAdvancedOptions([
-            VlcOption.networkCaching(1500),
-            VlcOption.liveCaching(1500),
-            VlcOption.rtspTcp,
-          ]),
+          advanced: VlcAdvancedOptions(_extraOptions),
           video: VlcVideoOptions([
-            VlcOption.videoTitleShow(false),
+            '--video-title-show=0',
           ]),
         ),
       );
@@ -64,7 +81,7 @@ class VideoPlayerService {
       await _controller.initialize();
       _isInitialized = true;
     } catch (e) {
-      throw Exception('Không khởi tạo được RTSP player: $e');
+      throw Exception('Không khởi tạo được player: $e');
     }
   }
 
@@ -93,12 +110,9 @@ class VideoPlayerService {
     try {
       await _controller.stop();
       await _controller.dispose();
-    } catch (_) {
-      // Ignore dispose errors because VLC may already be released.
-    } finally {
-      _isInitialized = false;
-      _isPlaying = false;
-    }
+    } catch (_) {}
+    _isInitialized = false;
+    _isPlaying = false;
   }
 
   static Future<String?> testConnection({
@@ -109,11 +123,14 @@ class VideoPlayerService {
   }) async {
     VlcPlayerController? controller;
     try {
-      final url = buildRtspUrl(
-        rtspUrl: rtspUrl,
-        username: username,
-        password: password,
-      );
+      final cleanUrl = rtspUrl.trim();
+      final url = (username.isEmpty || password.isEmpty)
+          ? cleanUrl
+          : cleanUrl.replaceFirst(
+              cleanUrl.startsWith('rtsp://') ? 'rtsp://' : 'http://',
+              '${cleanUrl.startsWith('rtsp://') ? 'rtsp://' : 'http://'}'
+              '${Uri.encodeComponent(username)}:${Uri.encodeComponent(password)}@',
+            );
 
       controller = VlcPlayerController.network(
         url,
@@ -121,9 +138,10 @@ class VideoPlayerService {
         autoPlay: false,
         options: VlcPlayerOptions(
           advanced: VlcAdvancedOptions([
-            VlcOption.networkCaching(1000),
-            VlcOption.liveCaching(1000),
-            VlcOption.rtspTcp,
+            VlcAdvancedOptions.networkCaching(1000),
+            VlcAdvancedOptions.liveCaching(1000),
+            if (url.startsWith('rtsp://')) '--rtsp-tcp',
+            if (url.startsWith('http://')) '--http-reconnect',
           ]),
         ),
       );
@@ -134,7 +152,7 @@ class VideoPlayerService {
 
       final value = controller.value;
       if (value.hasError) {
-        return value.errorDescription ?? 'Không kết nối được RTSP stream';
+        return value.errorDescription ?? 'Không kết nối được stream';
       }
 
       return null;

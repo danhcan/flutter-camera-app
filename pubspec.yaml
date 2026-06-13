@@ -33,6 +33,10 @@ dependencies:
   uuid: ^4.0.0
   shared_preferences: ^2.2.0
 
+dependency_overrides:
+  package_info_plus: ^8.0.0
+  package_info_plus_platform_interface: ^3.0.0
+
 dev_dependencies:
   flutter_test:
     sdk: flutter

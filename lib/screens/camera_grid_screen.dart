@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../models/camera_model.dart';
+import '../models/camera_model.dart' show CameraModel, StreamType;
 import 'camera_player_screen.dart';
 import 'camera_detail_screen.dart';
 
@@ -112,14 +112,41 @@ class CameraGridTile extends StatelessWidget {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      camera.location,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: const TextStyle(
-                        color: Colors.grey,
-                        fontSize: 12,
-                      ),
+                    const SizedBox(height: 2),
+                    Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 1),
+                          decoration: BoxDecoration(
+                            color: camera.streamType == StreamType.http
+                                ? Colors.orange.shade700
+                                : camera.streamType == StreamType.onvif
+                                    ? Colors.green.shade700
+                                    : Colors.blue.shade700,
+                            borderRadius: BorderRadius.circular(3),
+                          ),
+                          child: Text(
+                            camera.streamType.name.toUpperCase(),
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 9,
+                              fontWeight: FontWeight.bold,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Text(
+                            camera.location,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ),
+                      ],
                     ),
                   ],
                 ),
